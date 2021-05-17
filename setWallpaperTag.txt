@@ -1,0 +1,52 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~ Установить обои на каждом теге ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# sets a tag defined wallpaper when tag changes
+declare -A WALLPAPER
+
+# These wallpapers come with Deepin desktop environment, but also look great in hlwm
+DIR=/etc/xdg/herbstluftwm
+WALLPAPER=(
+# [0] Нулевыевые обои будут обоями для всех окон по умолчанию
+  [0]=$DIR/background.png
+# [9] В девятом окне стоит backgroundMars.jpg
+  [9]=$DIR/backgroundMars.jpg
+# Дальше не понимаю
+# [file]=$DIR/backgroundMars.jpg
+# [edit]=$DIR/backgroundMars.jpg
+# [read]=$DIR/backgroundMars.jpg
+# [browse]=$DIR/backgroundMars.jpg
+# [draw]=$DIR/backgroundMars.jpg
+# [watch]=$DIR/backgroundMars.jpg
+# [hear]=$DIR/background.png
+# [mail]=$DIR/background.png
+# [chat]=$DIR/background.png
+)
+
+
+# it should (hopefully) die on reload
+herbstclient --idle '(tag_changed|reload)' \
+    | while read line ; do
+    ARGS=( $line )
+    HOOK=${ARGS[0]}
+    TAG=${ARGS[1]}
+    case $HOOK in
+	reload)
+	    exit 1
+	    ;;
+	quit_panel)
+	    exit 1
+	    ;;
+	tag_changed)
+	    if ! [ -z "${WALLPAPER[$TAG]}" ] ; then
+		# there is a wallpaper for this tag
+		CUR=${WALLPAPER[$TAG]}
+	    else
+		# there is no wallpaper for this tag -> fall back
+		CUR=${WALLPAPER[0]}
+	    fi
+	    echo "setting wallpaper to $CUR"
+	    feh --bg-scale $CUR
+	    ;;
+	*) ;;
+    esac
+done
